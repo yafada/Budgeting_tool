@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budgeting Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e9ecef; /* Light gray background for the entire page */
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #343a40; /* Dark gray for the heading */
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff; /* White background for the container */
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px; /* Rounded corners for the container */
+        }
+        input[type="number"], input[type="text"], input[type="date"], select {
+            width: 100%; 
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ced4da; /* Border color */
+            border-radius: 4px;
+            box-sizing: border-box; 
+            background-color: #f8f9fa; /* Light background for inputs */
+            transition: border-color 0.3s; /* Smooth transition for border color */
+        }
+        input[type="number"]:focus, input[type="text"]:focus, input[type="date"]:focus, select:focus {
+            border-color: #28a745; /* Green border on focus */
+            outline: none; /* Remove default outline */
+        }
+        button {
+            padding: 10px;
+            background-color: #007bff; /* Bootstrap primary color */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%; 
+            margin: 10px 0; 
+            transition: background-color 0.3s; /* Smooth transition for button color */
+        }
+        button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+        #output {
+            margin-top: 20px;
+            color: #495057; /* Dark text color for output */
+            background: #f8f9fa; /* Light background for output area */
+            padding: 10px;
+            border-radius: 4px; /* Rounded corners for the output area */
+            border: 1px solid #ced4da; /* Border color for output */
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #6c757d; /* Light gray for footer text */
+            font-size: 14px; /* Slightly smaller font for footer */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Budgeting Tool</h1>
+
+        <label for="goal">Savings Goal:</label>
+        <select id="goal" onchange="updateCustomGoal()">
+            <option value="0">Select a goal</option>
+            <option value="1000">A New Laptop (Around $1,000)</option>
+            <option value="5000">A Vacation (Around $5,000)</option>
+            <option value="10000">An Emergency Fund (Around $10,000)</option>
+            <option value="20000">A Car (Around $20,000)</option>
+            <option value="custom">Custom Goal</option>
+        </select><br><br>
+
+        <label for="customGoalInput" id="customGoalLabel" style="display: none;">Custom Savings Goal Name:</label>
+        <input type="text" id="customGoalInput" placeholder="Enter your custom goal name" style="display: none;" />
+
+        <label for="goalAmount" id="goalAmountLabel" style="display: none;">Custom Savings Goal Amount:</label>
+        <input type="number" id="goalAmount" placeholder="Enter your goal amount" style="display: none;" />
+
+        <label for="currentSavings">Current Savings Amount:</label>
+        <select id="currentSavings" onchange="updateCustomSavings()">
+            <option value="0">Select your current savings (leave blank = 0)</option>
+            <option value="1000">$1,000</option>
+            <option value="5000">$5,000</option>
+            <option value="10000">$10,000</option>
+            <option value="20000">$20,000</option>
+            <option value="custom">Custom Amount</option>
+        </select>
+        <input type="number" id="customCurrentSavings" placeholder="Enter your custom savings amount" style="display: none;" />
+
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" />
+
+        <label for="income">Monthly Income:</label>
+        <input type="number" id="income" />
+
+        <label for="fixedExpenses">Monthly Fixed Expenses:</label>
+        <input type="number" id="fixedExpenses" placeholder="e.g., Rent, Insurance" />
+
+        <label for="variableExpenses">Monthly Variable Expenses:</label>
+        <input type="number" id="variableExpenses" placeholder="e.g., Food, Entertainment" />
+
+        <button onclick="calculatePlan()">Calculate Plan</button>
+        <button onclick="downloadTXT()" id="downloadButton" style="display:none;">Download Summary as TXT</button>
+
+        <div id="output"></div>
+    </div>
+
+    <footer>
+        &copy; 2024 Chuk Enterprise. All rights reserved.
+    </footer>
+
+    <script>
+        let savingsPlan = {}; // To store savings plan details
+
+        function updateCustomGoal() {
+            const goalSelect = document.getElementById("goal");
+            const customGoalInput = document.getElementById("customGoalInput");
+            const customGoalLabel = document.getElementById("customGoalLabel");
+            const goalAmountInput = document.getElementById("goalAmount");
+            const goalAmountLabel = document.getElementById("goalAmountLabel");
+
+            if (goalSelect.value === "custom") {
+                customGoalInput.style.display = "block";
+                customGoalLabel.style.display = "block";
+                goalAmountInput.style.display = "block";
+                goalAmountLabel.style.display = "block";
+            } else {
+                customGoalInput.style.display = "none";
+                customGoalLabel.style.display = "none";
+                goalAmountInput.style.display = "none";
+                goalAmountLabel.style.display = "none"; 
+                customGoalInput.value = ""; // Clear the custom name input
+                goalAmountInput.value = ""; // Clear the custom amount input
+            }
+        }
+
+        function updateCustomSavings() {
+            const currentSavingsSelect = document.getElementById("currentSavings");
+            const customCurrentSavingsInput = document.getElementById("customCurrentSavings");
+
+            if (currentSavingsSelect.value === "custom") {
+                customCurrentSavingsInput.style.display = "block";
+                customCurrentSavingsInput.value = ""; // Clear the custom amount input
+            } else {
+                customCurrentSavingsInput.style.display = "none"; 
+                customCurrentSavingsInput.value = ""; // Clear the custom amount input
+            }
+        }
+
+        function calculatePlan() {
+            const goalSelect = document.getElementById("goal");
+            const income = parseFloat(document.getElementById("income").value);
+            const fixedExpenses = parseFloat(document.getElementById("fixedExpenses").value);
+            const variableExpenses = parseFloat(document.getElementById("variableExpenses").value);
+            const currentSavingsSelect = document.getElementById("currentSavings").value;
+            const customCurrentSavings = parseFloat(document.getElementById("customCurrentSavings").value);
+            const currentSavings = currentSavingsSelect === "custom" ? customCurrentSavings : parseFloat(currentSavingsSelect);
+            const customGoalName = document.getElementById("customGoalInput").value;
+            const goalAmount = goalSelect.value === "custom" ? parseFloat(document.getElementById("goalAmount").value) : parseFloat(goalSelect.value);
+            const startDate = new Date(document.getElementById("startDate").value);
+
+            const totalExpenses = fixedExpenses + variableExpenses;
+            const savings = income - totalExpenses;
+
+            let message;
+            if (goalSelect.value === "custom" && (customGoalName.trim() === "" || isNaN(goalAmount) || goalAmount <= 0)) {
+                message = "Please enter a valid custom goal name and amount.";
+            } else if (isNaN(currentSavings) || currentSavings < 0) {
+                message = "Please select or enter a valid current savings amount.";
+            } else if (savings <= 0) {
+                message = "You need to reduce your expenses to save for your goal.";
+            } else {
+                const amountNeeded = goalAmount - currentSavings;
+                if (amountNeeded <= 0) {
+                    message = `You already have enough savings to afford your goal of ${goalSelect.value === "custom" ? customGoalName : goalSelect.options[goalSelect.selectedIndex].text}!\nNo additional savings needed.`;
+                } else {
+                    const months = Math.ceil(amountNeeded / savings);
+                    const years = (months / 12).toFixed(2);
+                    const goalName = goalSelect.value === "custom" ? customGoalName : goalSelect.options[goalSelect.selectedIndex].text;
+
+                    message = `You will take approximately ${months} months (${years} years) to save for your goal of ${goalName} ($${goalAmount}).`;
+
+                    // Store details in savingsPlan object
+                    savingsPlan = {
+                        goalName: goalName,
+                        goalAmount: goalAmount,
+                        currentSavings: currentSavings,
+                        income: income,
+                        fixedExpenses: fixedExpenses,
+                        variableExpenses: variableExpenses,
+                        totalExpenses: totalExpenses,
+                        savings: savings,
+                        months: months,
+                        years: years,
+                        startDate: startDate
+                    };
+
+                    // Show download button
+                    document.getElementById("downloadButton").style.display = "block";
+                }
+            }
+
+            document.getElementById("output").innerText = message;
+        }
+
+        function downloadTXT() {
+            const { goalName, goalAmount, currentSavings, income, fixedExpenses, variableExpenses, totalExpenses, savings, months, years, startDate } = savingsPlan;
+
+            let txtContent = "Budgeting Summary\n";
+            txtContent += "==============================\n";
+            txtContent += `Goal Name: ${goalName}\n`;
+            txtContent += `Goal Amount: $${goalAmount}\n`;
+            txtContent += `Current Savings: $${currentSavings}\n`;
+            txtContent += `Monthly Income: $${income}\n`;
+            txtContent += `Fixed Expenses: $${fixedExpenses}\n`;
+            txtContent += `Variable Expenses: $${variableExpenses}\n`;
+            txtContent += `Total Expenses: $${totalExpenses}\n`;
+            txtContent += `Savings per Month: $${savings}\n`;
+            txtContent += `Months to Goal: ${months}\n`;
+            txtContent += `Years to Goal: ${years}\n`;
+            txtContent += `Start Date: ${startDate.toLocaleDateString()}\n`;
+
+            const blob = new Blob([txtContent], { type: 'text/plain' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "budgeting_summary.txt";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+
+</body>
+</html>
